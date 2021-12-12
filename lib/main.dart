@@ -1,7 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:fyp_project_3/data_models/classifier.dart';
 import 'package:tflite/tflite.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'loading_indicator.dart';
 
 void main() {
   runApp(const MyApp());
@@ -33,7 +36,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   bool _loading = true;
   File? _image;
-  List<dynamic>? _outputs;
+  List<Classifier>? _outputs;
   final _imagePicker = ImagePicker();
 
   @override
@@ -51,7 +54,6 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _loading = false;
     });
-    print('loaded res: $res');
   }
 
   Future<void> pickImage() async {
@@ -72,10 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
       imageStd: 127.5,
       imageMean: 127.5,
     );
-    print('output: $output');
+    final classifierList = Classifier.fromJsonList(output);
     setState(() {
       _loading = false;
-      _outputs = output;
+      _outputs = classifierList;
     });
   }
 
@@ -86,9 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text('OsteoHelp'),
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
+          ? const CenterLoadingIndicator()
           : SizedBox(
               width: MediaQuery.of(context).size.width,
               child: Column(
@@ -107,12 +107,13 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   _outputs != null
                       ? Text(
-                          "${_outputs![0]["label"]}",
+                          _outputs!.first.label,
                           style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 20.0,
-                              background: Paint()..color = Colors.white,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.black,
+                            fontSize: 20.0,
+                            background: Paint()..color = Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         )
                       : const Text("Classification Waiting")
                 ],
